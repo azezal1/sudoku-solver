@@ -277,6 +277,29 @@ function App() {
         }
     };
 
+    const handleCellClick = (row, col) => {
+        if (solving) return;
+        setSelectedCell([row, col]);
+    };
+
+    const handleNumberPadClick = (num) => {
+        if (!selectedCell || solving) return;
+        const [row, col] = selectedCell;
+        handleCellChange(row, col, num.toString());
+    };
+
+    const handleClearCell = () => {
+        if (!selectedCell || solving) return;
+        const [row, col] = selectedCell;
+        handleCellChange(row, col, '');
+    };
+
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
     const checkPuzzleComplete = (currentBoard) => {
         // Check if all cells filled
         for (let i = 0; i < 9; i++) {
@@ -367,13 +390,15 @@ function App() {
                                         const cellIndex = i * 9 + j;
                                         const isCurrent = currentCell && currentCell[0] === i && currentCell[1] === j;
                                         const isBacktrack = backtrackCell && backtrackCell[0] === i && backtrackCell[1] === j;
+                                        const isSelected = selectedCell && selectedCell[0] === i && selectedCell[1] === j;
                                         const isInvalid = isCellInvalid(i, j);
                                         
                                         return (
                                             <input
                                                 key={cellIndex}
                                                 type="text"
-                                                className={`cell ${isCurrent ? 'current' : ''} ${isBacktrack ? 'backtrack' : ''} ${isInvalid ? 'invalid' : ''}`}
+                                                inputMode="none"
+                                                className={`cell ${isCurrent ? 'current' : ''} ${isBacktrack ? 'backtrack' : ''} ${isSelected ? 'selected' : ''} ${isInvalid ? 'invalid' : ''}`}
                                                 value={cell || ''}
                                                 onChange={(e) => {
                                                     const val = e.target.value;
@@ -381,8 +406,10 @@ function App() {
                                                         handleCellChange(i, j, val);
                                                     }
                                                 }}
+                                                onClick={() => handleCellClick(i, j)}
                                                 maxLength={1}
                                                 disabled={solving}
+                                                readOnly={window.innerWidth <= 768}
                                             />
                                         );
                                     })
@@ -401,6 +428,29 @@ function App() {
                                     {diff.charAt(0).toUpperCase() + diff.slice(1)}
                                 </button>
                             ))}
+                        </div>
+
+                        {/* Number Pad for Mobile */}
+                        <div className="number-pad">
+                            <div className="number-pad-grid">
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+                                    <button
+                                        key={num}
+                                        className="number-btn"
+                                        onClick={() => handleNumberPadClick(num)}
+                                        disabled={!selectedCell || solving}
+                                    >
+                                        {num}
+                                    </button>
+                                ))}
+                                <button
+                                    className="number-btn clear-btn"
+                                    onClick={handleClearCell}
+                                    disabled={!selectedCell || solving}
+                                >
+                                    ✕
+                                </button>
+                            </div>
                         </div>
                     </div>
 
